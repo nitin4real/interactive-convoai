@@ -1,0 +1,208 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: #1d1d1f;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Apple-style border radius */
+  --radius: 0.75rem;
+  
+  /* Custom gradient colors */
+  --gradient-start: #00c2ff;
+  --gradient-middle: #a0faff;
+  --gradient-end: #fcf9f8;
+  --gradient-accent: #c46ffb;
+
+  /* Base colors */
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+  
+  /* Primary colors */
+  --primary: #0071e3;
+  --primary-foreground: #ffffff;
+  
+  /* Secondary colors */
+  --secondary: #f5f5f7;
+  --secondary-foreground: #1d1d1f;
+  
+  /* Muted colors */
+  --muted: #f5f5f7;
+  --muted-foreground: #86868b;
+  
+  /* Accent colors */
+  --accent: #0071e3;
+  --accent-foreground: #ffffff;
+  
+  /* Destructive colors */
+  --destructive: #ff3b30;
+  
+  /* Border and input colors */
+  --border: #d2d2d7;
+  --input: #d2d2d7;
+  --ring: #0071e3;
+  
+  /* Chart colors */
+  --chart-1: #0071e3;
+  --chart-2: #34c759;
+  --chart-3: #ff9500;
+  --chart-4: #ff3b30;
+  --chart-5: #af52de;
+  
+  /* Sidebar colors */
+  --sidebar: #f5f5f7;
+  --sidebar-foreground: #1d1d1f;
+  --sidebar-primary: #0071e3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0071e3;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #d2d2d7;
+  --sidebar-ring: #0071e3;
+}
+
+/* Apple-style link styling */
+a {
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #0077ed;
+}
+
+/* Base body styling */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Apple-style typography */
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* Apple-style button styling */
+button {
+  border-radius: var(--radius);
+  border: none;
+  padding: 0.75em 1.5em;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #0077ed;
+  transform: translateY(-1px);
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.2);
+}
+
+/* Gradient utility classes */
+.gradient-header {
+  background: linear-gradient(90deg, var(--gradient-start) 0.08%, var(--gradient-middle) 33%, var(--gradient-end) 66%, var(--gradient-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  border-image: linear-gradient(90deg, var(--gradient-start) 0.08%, var(--gradient-middle) 33%, var(--gradient-end) 66%, var(--gradient-accent)) 1;
+}
+
+/* Apple-style card styling */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000;
+    --foreground: #f5f5f7;
+    --card: #1c1c1e;
+    --card-foreground: #f5f5f7;
+    --popover: #1c1c1e;
+    --popover-foreground: #f5f5f7;
+    --primary: #0a84ff;
+    --primary-foreground: #ffffff;
+    --secondary: #1c1c1e;
+    --secondary-foreground: #f5f5f7;
+    --muted: #2c2c2e;
+    --muted-foreground: #8e8e93;
+    --accent: #0a84ff;
+    --accent-foreground: #ffffff;
+    --destructive: #ff453a;
+    --border: #38383a;
+    --input: #38383a;
+    --ring: #0a84ff;
+  }
+}
+
+/* Base layer styles */
+/* @layer base {
+  * {
+    @apply border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}

@@ -1,0 +1,6 @@
+export enum EAgentRunningStatus {
+  DEFAULT = 'DEFAULT',
+  RECONNECTING = 'RECONNECTING',
+  LISTENING = 'LISTENING',
+  SPEAKING = 'SPEAKING'
+} 
