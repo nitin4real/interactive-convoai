@@ -4,12 +4,14 @@ import AgentSection from '../sections/AgentSection';
 import QuestionsSection from '../sections/QuestionsSection';
 import UserSection from '../sections/UserSection';
 import TranscriptionsSection from '../sections/TranscriptionsSection';
+import ContentPad from '../sections/ContentPad';
 import useClassStore from '../../store/class.store';
 import { useAgent } from '../../hooks/useAgent';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Mic, MicOff } from 'lucide-react';
 import { logger } from '@/utils/logger';
+import { agoraService } from '@/services/agora.service';
 
 interface TranscriptionMessage {
   text: string;
@@ -35,11 +37,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setSelectedLanguage,
     currentQuestion,
     transcriptions,
+    contentImage,
     stopAgent,
     leaveChannel,
     toggleMute,
     handleAnswerSubmit
-  } = useAgent( 'byjuai');
+  } = useAgent('byjuai');
 
   const {
     setIsAgentStarted,
@@ -75,20 +78,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleToggleMute = () => {
     setIsMuted(!isMuted);
-    addTranscription(`User ${isMuted ? 'unmuted' : 'muted'} their microphone`);
+    agoraService.toggleAudio(isMuted);
   };
 
   const handleLeaveChannel = async () => {
     try {
-      // Stop the agent first
       await stopAgent();
-      // Then leave the channel
       await leaveChannel();
-      // Update UI states
       setIsJoined(false);
       setIsAgentStarted(false);
       addTranscription('User left the classroom');
-      // Navigate back to start page
       navigate('/');
     } catch (error) {
       console.error('Failed to leave classroom:', error);
@@ -110,40 +109,52 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background">
+    <div className="min-h-screen w-full bg-background h-[100vh]">
       <Header />
-      <main className="container mx-auto p-4 h-[calc(100vh-3.5rem)]">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-          <div className="col-span-1 row-span-1">
-            <AgentSection
-              agentDetails={agentDetails}
-              isAgentStarted={isAgentStarted}
-              onStartAgent={handleStartAgent}
-              onStopAgent={handleStopAgent}
-            />
+      <main className="container mx-auto p-4 h-[calc(100vh-4rem)] flex flex-col">
+        <div className="flex flex-col h-full gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="col-span-1">
+              <AgentSection
+                agentDetails={agentDetails}
+                isAgentStarted={isAgentStarted}
+                onStartAgent={handleStartAgent}
+                onStopAgent={handleStopAgent}
+              />
+            </div>
+            <div className="col-span-1">
+              <QuestionsSection
+                currentQuestion={currentQuestion}
+                onAnswerSubmit={handleAnswerSubmit}
+              />
+            </div>
+            <div className="col-span-1">
+              <ContentPad 
+                imageUrl={contentImage}
+                title="Content Pad"
+              />
+            </div>
           </div>
-          <div className="col-span-1 row-span-1">
-            <QuestionsSection
-              currentQuestion={currentQuestion}
-              onAnswerSubmit={handleAnswerSubmit}
-            />
-          </div>
-          {/* <div className="col-span-1 row-span-1">
-            <UserSection
-              isJoined={isJoined}
-              isMuted={isMuted}
-              remoteUsers={remoteUsers}
-              onToggleMute={handleToggleMute}
-              onLeaveChannel={handleLeaveChannel}
-            />
-          </div> */}
-          <div className="col-span-1 md:col-span-2 row-span-1">
+          
+          <div className="h-[30vh]">
             <TranscriptionsSection
               transcriptions={transcriptions}
             />
           </div>
         </div>
-        <div className="fixed bottom-6 right-6">
+        <div className="fixed bottom-6 right-6 flex gap-4">
+          <Button
+            onClick={handleToggleMute}
+            variant="outline"
+            className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            {isMuted ? (
+              <MicOff className="mr-2 h-5 w-5" />
+            ) : (
+              <Mic className="mr-2 h-5 w-5" />
+            )}
+            {isMuted ? 'Unmute' : 'Mute'}
+          </Button>
           <Button
             onClick={handleLeaveChannel}
             variant="destructive"

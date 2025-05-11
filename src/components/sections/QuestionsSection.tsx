@@ -23,16 +23,15 @@ const QuestionsSection: React.FC<QuestionsSectionProps> = ({
   if (!currentQuestion) {
     return (
       <Card className="col-span-1 row-span-1 shadow-lg h-full flex flex-col">
-        <CardHeader className="border-b bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] pt-0">
+        <CardHeader className="border-b bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] pt-0 text-center">
           <CardTitle className="text-2xl">Question Pad</CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex-1 flex flex-col items-center justify-center text-center">
           <MessageSquare className="h-16 w-16 text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">No Active Question</h3>
           <p className="text-gray-500">
-            Questions will appear here when the agent asks them.
+            Questions will appear here when the teacher asks them.
             <br />
-            You can also type your own questions in the chat.
           </p>
         </CardContent>
       </Card>

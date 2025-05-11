@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { AgentGlobe } from './AgentGlobe';
 
 interface AgentSectionProps {
@@ -12,7 +12,10 @@ interface AgentSectionProps {
 const AgentSection: React.FC<AgentSectionProps> = () => {
   return (
     <Card className="col-span-1 row-span-1 shadow-lg h-full flex flex-col">
-      <CardContent className="p-0 flex-1">
+      <CardHeader className="border-b bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] pt-0 text-center">
+        <CardTitle className="text-2xl">Teaching Assistant</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
         <AgentGlobe />
       </CardContent>
     </Card>

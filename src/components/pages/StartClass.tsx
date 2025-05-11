@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRTCStore } from '../../store/rtc.store';
 import useClassStore from '../../store/class.store';
 import { EAgentRunningStatus } from '../../types/agent';
+import { LogIn } from 'lucide-react';
 
 export default function StartClass() {
   const navigate = useNavigate();
@@ -26,10 +27,12 @@ export default function StartClass() {
         <AgentGlobe />
       </div>
       <Button
-        onClick={handleStartClass}
-        className="px-12 py-8 text-xl font-semibold rounded-2xl bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] text-gray-800 hover:opacity-90 transition-all duration-200 shadow-lg hover:shadow-xl"
-      >
+            onClick={handleStartClass}
+            variant="destructive"
+            className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          >
         Start Class
+        <LogIn className="ml-2 h-5 w-5" />
       </Button>
     </div>
   );

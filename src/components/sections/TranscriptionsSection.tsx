@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface TranscriptionMessage {
@@ -10,7 +10,27 @@ interface TranscriptionsSectionProps {
   transcriptions: TranscriptionMessage[];
 }
 
+const testTranscriptions: TranscriptionMessage[] = [
+  { text: "Hello! How can I help you today?", type: "agent" },
+  { text: "I have a question about mathematics", type: "user" },
+  { text: "What is the quadratic formula?", type: "question" },
+  { text: "The quadratic formula is x = (-b ± √(b² - 4ac)) / 2a", type: "answer" },
+  { text: "Can you explain how to use it?", type: "user" },
+  { text: "Let me explain with an example: For the equation 2x² + 5x - 3 = 0, we can use the formula where a=2, b=5, and c=-3", type: "agent" }
+];
+
 const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcriptions }) => {
+  // transcriptions = testTranscriptions
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [transcriptions]);
+
   const getMessageStyle = (type: TranscriptionMessage['type']) => {
     switch (type) {
       case 'agent':
@@ -27,21 +47,30 @@ const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcrip
   };
 
   return (
-    <Card className="col-span-1 md:col-span-2 row-span-1 shadow-lg h-full flex flex-col">
-      <CardHeader className="border-b bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] pt-0">
+    <Card className="h-full  shadow-lg">
+      <CardHeader className="border-b bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] pt-0 text-center">
         <CardTitle className="text-2xl">Conversation</CardTitle>
       </CardHeader>
-      <CardContent className="p-4 flex-1 overflow-y-auto">
-        <div className="space-y-4">
-          {transcriptions.map((message, index) => (
-            <div
-              key={index}
-              className={`max-w-[80%] rounded-lg p-3 ${getMessageStyle(message.type)}`}
-            >
-              {message.text}
-            </div>
-          ))}
-        </div>
+      <CardContent className="p-4 flex-1 overflow-y-auto scrollbar-hide">
+        {transcriptions.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            <p className="text-gray-500 text-center">
+              No conversation yet. Start by asking a question!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4 scrollbar-hide">
+            {transcriptions.map((message, index) => (
+              <div
+                key={index}
+                className={`max-w-[80%] rounded-lg p-3 ${getMessageStyle(message.type)}`}
+              >
+                {message.text.replace(/Baiju/gi, 'Byju')}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

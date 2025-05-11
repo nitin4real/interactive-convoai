@@ -49,6 +49,7 @@ export const useAgent = (agentId: string) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [transcriptions, setTranscriptions] = useState<TranscriptionMessage[]>([]);
+  const [contentImage, setContentImage] = useState<string | undefined>();
   const isInitializedRef = useRef(false);
 
   const handleNewQuestion = useCallback((data: Question) => {
@@ -113,6 +114,11 @@ export const useAgent = (agentId: string) => {
             text: `Answer ${data.correct ? 'correct' : 'incorrect'}`, 
             type: 'answer' 
           }]);
+        });
+
+        socketRef.current.on('content', (data: { imageUrl: string }) => {
+          logger.info('useAgent', `Received content: ${data.imageUrl}`);
+          setContentImage(data.imageUrl);
         });
 
         socketRef.current.on('transcript', handleTranscript);
@@ -252,6 +258,7 @@ export const useAgent = (agentId: string) => {
     setSelectedLanguage,
     currentQuestion,
     transcriptions,
+    contentImage,
     stopAgent,
     leaveChannel,
     toggleMute,

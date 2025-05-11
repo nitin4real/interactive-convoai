@@ -17,7 +17,7 @@ const Header: React.FC = () => {
 
   return (
     <header 
-      className="w-full py-4 px-6 flex items-center justify-between shadow-md transition-colors duration-200"
+      className="w-full py-4 px-6 flex items-center justify-between shadow-md transition-colors duration-200 h-16"
       style={{ 
         backgroundColor: currentTheme.colors.header.background,
         color: currentTheme.colors.header.text
@@ -35,7 +35,7 @@ const Header: React.FC = () => {
           Interactive Learning Platform
         </span>
         
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
@@ -63,7 +63,7 @@ const Header: React.FC = () => {
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </div>
     </header>
   );

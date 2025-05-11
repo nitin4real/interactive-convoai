@@ -73,7 +73,6 @@ export function AgentGlobe() {
     const isLarge = typeof window !== 'undefined'
       ? window.innerWidth > 1024 && window.innerWidth < 1280
       : false;
-    
     if (isMobile) {
       spline.setZoom(0.5);
     } else if (isXLarge) {
@@ -87,7 +86,7 @@ export function AgentGlobe() {
   }
   
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-[500px]">
       <Spline
         scene="/spline/scene-250216.splinecode"
         onLoad={onSplineLoad}
