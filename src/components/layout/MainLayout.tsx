@@ -123,7 +123,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </div>
         <div className="fixed bottom-6 right-6 flex gap-4">
-          <Button
+          {/* <Button
             onClick={handleToggleMute}
             variant="outline"
             className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
@@ -134,7 +134,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Mic className="mr-2 h-5 w-5" />
             )}
             {isMuted ? 'Unmute' : 'Mute'}
-          </Button>
+          </Button> */}
           <Button
             onClick={handleLeaveChannel}
             variant="destructive"

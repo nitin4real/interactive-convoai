@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-
+import logo from '../../assets/agora-logo.svg';
 
 const Login: React.FC = () => {
   const [id, setId] = useState<string>('');
@@ -33,14 +33,15 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-      <Card className="w-full max-w-md shadow-2xl border-0 p-4">
-        <CardHeader className="space-y-3 pb-4">
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+      <Card className="w-full max-w-md shadow-2xl border-0 p-4 ">
+        <img src={logo} alt="Agora Logo" className="w-40 -mb-4  self-center" />
+        <CardHeader className="space-y-3 pb-4 ">
+          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-[#099DFD] to-[#099DFD] bg-clip-text text-transparent">
             Welcome to Agora Conversational AI Demo
           </CardTitle>
-        <p className="px-8 text-center text-sm text-muted-foreground">
-          Sign in to explore real-time AI conversations
-        </p>
+          <p className="px-8 text-center text-sm text-muted-foreground">
+            Sign in to explore real-time AI conversations
+          </p>
         </CardHeader>
         {error && (
           <div className="px-8 pb-4">
@@ -94,7 +95,7 @@ const Login: React.FC = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-11 text-base font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
+              className="w-full h-11 text-base font-medium bg-gradient-to-r from-[#099DFD] to-[#099DFD] hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               Sign In
             </Button>
