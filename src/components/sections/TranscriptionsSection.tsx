@@ -11,11 +11,13 @@ interface TranscriptionsSectionProps {
 }
 
 const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcriptions }) => {
-  // transcriptions = testTranscriptions
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const trascriptionListRef = useRef<HTMLDivElement>(null);
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    trascriptionListRef.current?.scrollTo({
+      top: trascriptionListRef.current?.scrollHeight,
+      behavior: 'smooth'
+    });
   };
 
   useEffect(() => {
@@ -42,7 +44,7 @@ const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcrip
       <CardHeader className="border-b bg-gradient-to-r from-[#00c2ff] via-[#a0faff] to-[#fcf9f8] pt-0 text-center">
         <CardTitle className="text-2xl">Conversation</CardTitle>
       </CardHeader>
-      <CardContent className="p-4 flex-1 overflow-y-auto scrollbar-hide">
+      <CardContent ref={trascriptionListRef} className="p-4 flex-1 overflow-y-auto scrollbar-hide">
         {transcriptions.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <p className="text-gray-500 text-center">
@@ -59,7 +61,6 @@ const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcrip
                 {message.text.replace(/Baiju/gi, 'Byju')}
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </div>
         )}
       </CardContent>
