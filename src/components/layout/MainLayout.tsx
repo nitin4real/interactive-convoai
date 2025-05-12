@@ -6,15 +6,11 @@ import TranscriptionsSection from '../sections/TranscriptionsSection';
 import ContentPad from '../sections/ContentPad';
 import useClassStore from '../../store/class.store';
 import { useAgent } from '../../hooks/useAgent';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { LogOut, Mic, MicOff } from 'lucide-react';
 import { agoraService } from '@/services/agora.service';
 import StartClass from '../pages/StartClass';
-interface TranscriptionMessage {
-  text: string;
-  type: 'agent' | 'user' | 'question' | 'answer';
-}
 
 export interface MainLayoutProps {
   children?: React.ReactNode;

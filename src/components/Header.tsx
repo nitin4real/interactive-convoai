@@ -1,20 +1,11 @@
 import React from 'react';
-import byjuLogo from '../assets/byju_logo.png';
 import agoraLogo from '../assets/agora_logo.png';
 import { useTheme } from '../context/ThemeContext';
-import { themes } from '../config/theme.config';
-import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Palette } from 'lucide-react';
 import { authService } from '../services/auth.service';
 const Header: React.FC = () => {
   const { currentTheme, setTheme } = useTheme();
   const brandDetails = authService.getBrandDetails();
+  console.log(setTheme)
   return (
     <header
       className="w-full py-4 px-6 flex items-center justify-between shadow-md transition-colors duration-200 h-16"

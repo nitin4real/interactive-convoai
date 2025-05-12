@@ -10,13 +10,13 @@ const agentSplineCubeId = 'cube-id'; // Replace with your actual cube ID from Sp
 
 export function AgentGlobe() {
   const [isSplineInited, setIsSplineInited] = React.useState(false);
-  
+
   const { agentStatus, agentRunningStatus } = useRTCStore();
   const { showSubtitle } = useGlobalStore();
-  
+  console.log(isSplineInited, agentStatus, showSubtitle)
   const cube = React.useRef<SPEObject | null>(null);
   const splineRef = React.useRef<Application | null>(null);
-  
+
   React.useEffect(() => {
     if (!cube.current || !splineRef.current) {
       return;
@@ -36,7 +36,7 @@ export function AgentGlobe() {
       splineRef.current.setVariable('mk2', new Date().getTime());
     }
   }, [agentRunningStatus]);
-  
+
   React.useEffect(() => {
     const handleResize = () => {
       if (!splineRef.current) {
@@ -51,22 +51,22 @@ export function AgentGlobe() {
         cube.current?.emitEvent('start');
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-  
+
   function onSplineLoad(spline: Application) {
     splineRef.current = spline;
     const obj = spline.findObjectById(agentSplineCubeId);
-    
+
     if (obj) {
       cube.current = obj;
     }
-    
+
     // Call handleResize to set initial zoom based on screen size
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
     const isXLarge = typeof window !== 'undefined' ? window.innerWidth > 1280 : false;
@@ -84,7 +84,7 @@ export function AgentGlobe() {
     }
     setIsSplineInited(true);
   }
-  
+
   return (
     <div className="w-full h-[500px]">
       <Spline

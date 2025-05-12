@@ -10,15 +10,6 @@ interface TranscriptionsSectionProps {
   transcriptions: TranscriptionMessage[];
 }
 
-const testTranscriptions: TranscriptionMessage[] = [
-  { text: "Hello! How can I help you today?", type: "agent" },
-  { text: "I have a question about mathematics", type: "user" },
-  { text: "What is the quadratic formula?", type: "question" },
-  { text: "The quadratic formula is x = (-b ± √(b² - 4ac)) / 2a", type: "answer" },
-  { text: "Can you explain how to use it?", type: "user" },
-  { text: "Let me explain with an example: For the equation 2x² + 5x - 3 = 0, we can use the formula where a=2, b=5, and c=-3", type: "agent" }
-];
-
 const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcriptions }) => {
   // transcriptions = testTranscriptions
   const messagesEndRef = useRef<HTMLDivElement>(null);

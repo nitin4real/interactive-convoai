@@ -6,11 +6,6 @@ interface TranscriptionMessage {
   type: 'agent' | 'user' | 'question' | 'answer';
 }
 
-interface Question {
-  id: string;
-  question: string;
-  options: string[];
-}
 
 interface RemoteUser {
   uid: number;

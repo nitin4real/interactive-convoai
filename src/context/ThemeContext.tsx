@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Theme, themes, defaultTheme } from '../config/theme.config';
+import { Theme, defaultTheme } from '../config/theme.config';
 
 interface ThemeContextType {
   currentTheme: Theme;

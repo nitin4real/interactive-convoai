@@ -1,12 +1,6 @@
 import { create } from 'zustand';
 import { EAgentRunningStatus } from '../types/agent';
 
-interface RTCStore {
-  agentStatus: string;
-  agentRunningStatus: EAgentRunningStatus;
-  setAgentStatus: (status: string) => void;
-  setAgentRunningStatus: (status: EAgentRunningStatus) => void;
-}
 
 type RTCStoreState = {
   agentStatus: string;

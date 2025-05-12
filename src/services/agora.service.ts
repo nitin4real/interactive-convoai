@@ -6,11 +6,9 @@ import AgoraRTC, {
   IRemoteAudioTrack,
   UID
 } from 'agora-rtc-sdk-ng';
-import AgoraRTM from 'agora-rtm-sdk';
 import { logger } from '@/utils/logger';
 import { ETranscriptionObjectType, IAgentTranscription, IUserTranscription, messageEngine } from './agora.message.service';
 // import { messageEngine } from './agora.message.service';
-const { RTM } = AgoraRTM;
 export interface JoinChannelConfig {
   appId: string;
   channelName: string;
@@ -43,7 +41,6 @@ export interface AgoraServiceCallbacks {
 
 class AgoraService {
   private client: IAgoraRTCClient;
-  private rtmClient: any;
   private localAudioTrack: IMicrophoneAudioTrack | null = null;
   private remoteUsers: Map<UID, RemoteUser> = new Map();
   private callbacks: AgoraServiceCallbacks = {};

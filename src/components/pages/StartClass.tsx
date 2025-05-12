@@ -1,4 +1,3 @@
-import React from 'react';
 import { AgentGlobe } from '../sections/AgentGlobe';
 import { Button } from '../ui/button';
 import { LogIn } from 'lucide-react';
