@@ -1,10 +1,9 @@
 import { Eye, EyeOff } from 'lucide-react';
 import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { APP_CONFIG } from '../../config/app.config';
 import { authService } from '../../services/auth.service';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
