@@ -13,7 +13,7 @@ export default function StartClass({
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center gap-8 p-4">
-      <div className="w-full max-w-2xl  " onClick={handleStartClass}
+      <div className="w-full max-w-2xl"
       >
         <AgentGlobe />
       </div>
