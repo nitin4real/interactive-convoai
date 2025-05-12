@@ -8,8 +8,7 @@ import useClassStore from '../../store/class.store';
 import { useAgent } from '../../hooks/useAgent';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { LogOut, Mic, MicOff } from 'lucide-react';
-import { agoraService } from '@/services/agora.service';
+import { LogOut } from 'lucide-react';
 import StartClass from '../pages/StartClass';
 
 export interface MainLayoutProps {
@@ -56,10 +55,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, [transcriptions, addTranscription]);
 
 
-  const handleToggleMute = () => {
-    setIsMuted(!isMuted);
-    agoraService.toggleAudio(isMuted);
-  };
+  // const handleToggleMute = () => {
+  //   setIsMuted(!isMuted);
+  //   agoraService.toggleAudio(isMuted);
+  // };
 
   const handleLeaveChannel = async () => {
     try {
