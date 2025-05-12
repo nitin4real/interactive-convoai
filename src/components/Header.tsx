@@ -11,30 +11,35 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Palette } from 'lucide-react';
-
+import { authService } from '../services/auth.service';
 const Header: React.FC = () => {
   const { currentTheme, setTheme } = useTheme();
-
+  const brandDetails = authService.getBrandDetails();
   return (
-    <header 
+    <header
       className="w-full py-4 px-6 flex items-center justify-between shadow-md transition-colors duration-200 h-16"
-      style={{ 
+      style={{
         backgroundColor: currentTheme.colors.header.background,
         color: currentTheme.colors.header.text
       }}
     >
       <div className="flex items-center gap-4">
-        <img src={byjuLogo} alt="Byju's Logo" className="h-12 w-12 rounded bg-white p-1 shadow" />
-        <span className="text-2xl font-bold tracking-wide">BYJU'S</span>
+        {/* only show brand logo if brandDetails is available */}
+        {brandDetails && brandDetails.brandLogo && (
+          <>
+            <img src={brandDetails?.brandLogo} alt="Byju's Logo" className="h-12 w-12 rounded bg-white p-1 shadow" />
+            <span className="text-2xl font-bold tracking-wide">{brandDetails?.brandName}</span>
+          </>
+        )}
         <img src={agoraLogo} alt="Agora Logo" className="h-10 w-auto" />
         <span className="text-xl font-semibold ml-2 p-2">Powered by Agora</span>
       </div>
-      
+
       <div className="flex items-center gap-6">
         <span className="font-medium text-lg hidden md:block">
           Interactive Learning Platform
         </span>
-        
+
         {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 

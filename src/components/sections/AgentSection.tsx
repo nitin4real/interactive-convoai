@@ -3,10 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { AgentGlobe } from './AgentGlobe';
 
 interface AgentSectionProps {
-  agentDetails: any | null;
   isAgentStarted: boolean;
-  onStartAgent: () => void;
-  onStopAgent: () => void;
 }
 
 const AgentSection: React.FC<AgentSectionProps> = () => {

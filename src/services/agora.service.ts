@@ -6,14 +6,25 @@ import AgoraRTC, {
   IRemoteAudioTrack,
   UID
 } from 'agora-rtc-sdk-ng';
+import AgoraRTM from 'agora-rtm-sdk';
 import { logger } from '@/utils/logger';
+import { ETranscriptionObjectType, IAgentTranscription, IUserTranscription, messageEngine } from './agora.message.service';
 // import { messageEngine } from './agora.message.service';
-
-export interface AgoraChannelResponse {
+const { RTM } = AgoraRTM;
+export interface JoinChannelConfig {
   appId: string;
   channelName: string;
   token: string;
   uid: number;
+  rtmToken: string;
+}
+
+export interface StartAgentResponse {
+  rtcToken: string;
+  channelName: string;
+  appId: string;
+  uid: number;
+  rtmToken: string;
 }
 
 export interface RemoteUser {
@@ -26,10 +37,13 @@ export interface AgoraServiceCallbacks {
   onUserLeft?: (uid: UID) => void;
   onUserPublished?: (user: RemoteUser) => void;
   onUserUnpublished?: (user: RemoteUser) => void;
+  onUserTranscription?: (msg: IUserTranscription) => void;
+  onAgentTranscription?: (msg: IAgentTranscription) => void;
 }
 
 class AgoraService {
   private client: IAgoraRTCClient;
+  private rtmClient: any;
   private localAudioTrack: IMicrophoneAudioTrack | null = null;
   private remoteUsers: Map<UID, RemoteUser> = new Map();
   private callbacks: AgoraServiceCallbacks = {};
@@ -51,7 +65,6 @@ class AgoraService {
     });
 
     this.client.on('user-published', async (user, mediaType) => {
-      console.log('Loggin Service', 'User published:', user.uid, mediaType);
       if (mediaType === 'audio') {
         await this.client.subscribe(user, mediaType);
         const remoteUser = this.remoteUsers.get(user.uid);
@@ -64,7 +77,6 @@ class AgoraService {
     });
 
     this.client.on('user-unpublished', (user, mediaType) => {
-      console.log('Loggin Service', 'User unpublished:', user.uid, mediaType);
       if (mediaType === 'audio') {
         const remoteUser = this.remoteUsers.get(user.uid);
         if (remoteUser) {
@@ -74,31 +86,55 @@ class AgoraService {
       }
     });
 
-    // this.client.on('stream-message', (_: UID, payload: Uint8Array) => {
-    //   messageEngine.handleStreamMessage(payload)
-    // })
+    this.client.on('stream-message', (_: UID, payload: Uint8Array) => {
+      const msg = messageEngine.handleStreamMessage(payload)
+      if (msg === null) {
+        return
+      }
+      if (msg.object === ETranscriptionObjectType.USER_TRANSCRIPTION) {
+        this.callbacks.onUserTranscription?.(msg);
+      } else if (msg.object === ETranscriptionObjectType.AGENT_TRANSCRIPTION) {
+        this.callbacks.onAgentTranscription?.(msg);
+      }
+    })
+  }
 
+  async startAgent(): Promise<StartAgentResponse> {
+    try {
+      const response = await axios.post<StartAgentResponse>(`${API_CONFIG.ENDPOINTS.AGENT.START}`);
+      return response.data;
+    } catch (error) {
+      logger.error('Agora Service', 'Error starting agent');
+      throw error;
+    }
   }
 
   setCallbacks(callbacks: AgoraServiceCallbacks) {
     this.callbacks = callbacks;
   }
 
-  async getChannelInfo(agentId: string): Promise<AgoraChannelResponse> {
-    const response = await axios.get<AgoraChannelResponse>(
-      `${API_CONFIG.ENDPOINTS.AGORA.CHANNEL}/${agentId}`
-    );
-    return response.data;
-  }
+  async joinChannel(channelInfo: JoinChannelConfig): Promise<void> {
+    // this.rtmClient = new RTM(channelInfo.appId, channelInfo.uid.toString());
+    // this.rtmClient.addEventListener("message", (event: any) => {
+    //   console.log('Loggin Service', 'Message:', event);
+    // });
 
-  async joinChannel(channelInfo: AgoraChannelResponse): Promise<void> {
+    // try {
+    //   const loginResponse = await this.rtmClient.login({
+    //     token: channelInfo.rtmToken
+    //   });
+    //   console.log('Loggin Service', 'Login Response:', loginResponse);
+    // } catch (error) {
+    //   logger.error('Agora Service', 'Error logging in to RTM');
+    //   throw error;
+    // }
+
     await this.client.join(
       channelInfo.appId,
       channelInfo.channelName,
       channelInfo.token,
-      channelInfo.uid
+      Number(channelInfo.uid)
     );
-    logger.info('Agora Service', `Joined channel: ${JSON.stringify(channelInfo)}`,);
     this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
     await this.client.publish([this.localAudioTrack]);
   }

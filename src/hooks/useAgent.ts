@@ -1,21 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+
 import { Socket, io } from 'socket.io-client';
 import { API_CONFIG } from '../config/api.config';
 import axios from '../config/axios.config';
-import { AgoraChannelResponse, agoraService, RemoteUser } from '../services/agora.service';
-import { AgentTile, StartAgentRequest, StartAgentResponse } from '../config/agents.config';
+import { agoraService, RemoteUser, StartAgentResponse } from '../services/agora.service';
+
 import { logger } from '@/utils/logger';
-
-// Static initialization state
-let isGloballyInitialized = false;
-let globalInitializationPromise: Promise<void> | null = null;
-
-interface AgentState {
-  channelInfo: AgoraChannelResponse | null;
-  agentId: string | null;
-  convoAgentId: string | null;
-}
-
 interface Question {
   id: string;
   question: string;
@@ -32,19 +22,14 @@ interface TranscriptionMessage {
   type: 'agent' | 'user' | 'question' | 'answer';
 }
 
-export const useAgent = (agentId: string) => {
-  const [agentState, setAgentState] = useState<AgentState>({
-    channelInfo: null,
-    agentId: null,
-    convoAgentId: null
-  });
+export const useAgent = () => {
+  const [agentState, setAgentState] = useState<StartAgentResponse | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const [isJoined, setIsJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isAgentStarted, setIsAgentStarted] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<RemoteUser[]>([]);
-  const [agentDetails, setAgentDetails] = useState<AgentTile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
@@ -60,124 +45,103 @@ export const useAgent = (agentId: string) => {
   }, []);
 
   const handleTranscript = useCallback((data: Transcript) => {
-    logger.info('useAgent', `New transcript from ${data.isAgent ? 'agent' : 'user'}: ${data.transcript}`);
-    setTranscriptions(prev => [...prev, { 
-      text: data.transcript, 
-      type: data.isAgent ? 'agent' : 'user' 
-    }]);
-  }, []);
+    // handle overlapping transcriptions
+    setTranscriptions(prev => {
+      const lastTranscript = prev[prev.length - 1];
+      if (lastTranscript && lastTranscript.type === (data.isAgent ? 'agent' : 'user')) {
+        prev = prev.slice(0, -1);
+      }
+      return [...prev, {
+        text: data.transcript,
+        type: data.isAgent ? 'agent' : 'user'
+      }];
+    });
+  }, [transcriptions]);
 
-  const initializeAgent = useCallback(async () => {
-    if (isGloballyInitialized) {
-      logger.info('useAgent', 'Initialization skipped: already initialized');
-      return;
-    }
 
-    if (globalInitializationPromise) {
-      logger.info('useAgent', 'Initialization skipped: in progress');
-      return globalInitializationPromise;
-    }
-
-    logger.info('useAgent', 'Starting initialization');
-    globalInitializationPromise = (async () => {
-      try {
-        // Get channel info
-        logger.info('useAgent', 'Getting channel info');
-        const info = await agoraService.getChannelInfo(agentId);
-        setAgentState(prev => ({ ...prev, channelInfo: info }));
-
-        // Join the channel
-        await agoraService.joinChannel(info);
-        setIsJoined(true);
-
-        // Start the agent
-        const request: StartAgentRequest = {
-          channelName: info.channelName,
-          languageCode: selectedLanguage || ""
-        };
-        const response = await axios.post<StartAgentResponse>(
-          `${API_CONFIG.ENDPOINTS.AGENT.START}/${agentId}`,
-          request
-        );
-        
-        setAgentState(prev => ({ ...prev, convoAgentId: response.data.agent_id }));
-        
-        // Initialize socket connection
-        socketRef.current = io(API_CONFIG.SOCKET_URL);
-        
-        // Set up socket event listeners
-        socketRef.current.on('new_question', handleNewQuestion);
-
-        socketRef.current.on('answer_confirmed', (data: { correct: boolean }) => {
-          logger.info('useAgent', `Answer confirmed: ${data.correct ? 'correct' : 'incorrect'}`);
-          setTranscriptions(prev => [...prev, { 
-            text: `Answer ${data.correct ? 'correct' : 'incorrect'}`, 
-            type: 'answer' 
-          }]);
-        });
-
-        socketRef.current.on('content', (data: { imageUrl: string }) => {
-          logger.info('useAgent', `Received content: ${data.imageUrl}`);
-          setContentImage(data.imageUrl);
-        });
-
-        socketRef.current.on('transcript', handleTranscript);
-
+  const startAgent = useCallback(async () => {
+    setLoading(true);
+    logger.info('useAgent', 'Starting agent');
+    try {
+      const startAgentResponse = await agoraService.startAgent();
+      if (startAgentResponse) {
+        setAgentState(startAgentResponse);
         setIsAgentStarted(true);
-        isInitializedRef.current = true;
-        isGloballyInitialized = true;
+
+        // Initialize socket connection
+        if (!socketRef.current) {
+          socketRef.current = io(API_CONFIG.BASE_URL, {
+            auth: {
+              token: localStorage.getItem('token'),
+              channelName: startAgentResponse.channelName
+            },
+            transports: ['websocket']
+          });
+
+          // Socket event listeners
+          socketRef.current.on('connect', () => {
+            logger.info('useAgent', 'Socket connected successfully');
+          });
+          socketRef.current.on('message', (data) => {
+            logger.info('useAgent', `Socket message ${data}`);
+          });
+          socketRef.current.on('disconnect', () => {
+            logger.info('useAgent', 'Socket disconnected');
+          });
+
+          socketRef.current.on('error', (error) => {
+            logger.error('useAgent', `Socket error ${error}`);
+          });
+
+          // Listen for new questions
+          socketRef.current.on('new_question', handleNewQuestion);
+          socketRef.current.on('content', (data) => {
+            logger.info('useAgent', `Content received ${JSON.stringify(data)}`);
+            setContentImage(data.imageUrl);
+          });
+        }
+
+        // join the channel
+        logger.info('useAgent', `Joining channel ${JSON.stringify(startAgentResponse)}`);
+        await agoraService.joinChannel({
+          appId: startAgentResponse.appId,
+          channelName: startAgentResponse.channelName,
+          token: startAgentResponse.rtcToken,
+          uid: startAgentResponse.uid,
+          rtmToken: startAgentResponse.rtmToken
+        });
+        setIsJoined(true);
         setLoading(false);
         logger.info('useAgent', 'Initialization completed successfully');
-      } catch (error: any) {
-        console.error('Failed to initialize agent:', error);
-        if (error?.response?.status === 440) {
-          handleTimeout();
-        } else {
-          setError('Failed to initialize agent');
-        }
+      } else {
+        setError('Failed to initialize agent');
         setLoading(false);
-        isInitializedRef.current = false;
-        isGloballyInitialized = false;
-      } finally {
-        globalInitializationPromise = null;
       }
-    })();
+    } catch (error: any) {
+      console.error('Failed to initialize agent:', error);
+      if (error?.response?.status === 440) {
+        handleTimeout();
+      } else {
+        setError('Failed to initialize agent');
+      }
+      setLoading(false);
+    }
+  }, [handleNewQuestion, handleTranscript]);
 
-    return globalInitializationPromise;
-  }, [agentId, selectedLanguage, handleNewQuestion, handleTranscript]);
-
+  // Clean up socket connection on unmount
   useEffect(() => {
-    initializeAgent();
-
     return () => {
-      // Only cleanup local state, don't reset global state
+      if (socketRef.current) {
+        socketRef.current.off('new_question');
+        socketRef.current.off('transcript');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
       isInitializedRef.current = false;
       leaveChannel();
     };
-  }, [initializeAgent]);
+  }, []);
 
-  // Separate effect for handling language changes
-  useEffect(() => {
-    if (isInitializedRef.current && selectedLanguage && agentState.convoAgentId) {
-      // Handle language change for existing session
-      const updateLanguage = async () => {
-        try {
-          const request: StartAgentRequest = {
-            channelName: agentState.channelInfo?.channelName || "",
-            languageCode: selectedLanguage
-          };
-          await axios.post<StartAgentResponse>(
-            `${API_CONFIG.ENDPOINTS.AGENT.START}/${agentId}`,
-            request
-          );
-        } catch (error) {
-          console.error('Failed to update language:', error);
-          setError('Failed to update language');
-        }
-      };
-      updateLanguage();
-    }
-  }, [selectedLanguage, agentId, agentState.convoAgentId]);
 
   useEffect(() => {
     agoraService.setCallbacks({
@@ -188,13 +152,19 @@ export const useAgent = (agentId: string) => {
       onUserLeft: (uid) => {
         console.log('User left:', uid);
         setRemoteUsers(prev => prev.filter(user => user.uid !== uid));
+      },
+      onUserTranscription: (msg) => {
+        handleTranscript({ transcript: msg.text, isAgent: false });
+      },
+      onAgentTranscription: (msg) => {
+        handleTranscript({ transcript: msg.text, isAgent: true });
       }
     });
   }, []);
 
   const handleAnswerSubmit = (answer: string) => {
     if (!socketRef.current || !currentQuestion) return;
-    
+
     socketRef.current.emit('answer_submitted', {
       answer,
       question: currentQuestion.question
@@ -202,15 +172,15 @@ export const useAgent = (agentId: string) => {
   };
 
   const stopAgent = async () => {
-    if (!agentState.convoAgentId) return;
+    if (!agentState) return;
 
     try {
       await axios.post(
         `${API_CONFIG.ENDPOINTS.AGENT.STOP}`,
-        { convoAgentId: agentState.convoAgentId }
+        { channelName: agentState.channelName }
       );
       setIsAgentStarted(false);
-      setAgentState(prev => ({ ...prev, convoAgentId: null }));
+      setAgentState(null);
     } catch (error) {
       console.error('Failed to stop agent:', error);
       setError('Failed to stop agent');
@@ -222,8 +192,8 @@ export const useAgent = (agentId: string) => {
     setIsJoined(false);
     setIsAgentStarted(false);
     setRemoteUsers([]);
-    setAgentState(prev => ({ ...prev, convoAgentId: null }));
-    
+    setAgentState(null);
+
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
@@ -239,19 +209,15 @@ export const useAgent = (agentId: string) => {
     console.log('Session expired, stopping heartbeat');
     leaveChannel();
     setIsAgentStarted(false);
-    setAgentState(prev => ({ ...prev, convoAgentId: null }));
-    // Reset global state on timeout
-    isGloballyInitialized = false;
-    globalInitializationPromise = null;
+    setAgentState(null);
   };
 
   return {
-    channelInfo: agentState.channelInfo,
+    channelInfo: agentState,
     isJoined,
     isMuted,
     isAgentStarted,
     remoteUsers,
-    agentDetails,
     loading,
     error,
     selectedLanguage,
@@ -262,6 +228,7 @@ export const useAgent = (agentId: string) => {
     stopAgent,
     leaveChannel,
     toggleMute,
+    startAgent,
     handleAnswerSubmit
   };
 }; 

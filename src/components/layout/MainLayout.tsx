@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import Header from '../Header';
 import AgentSection from '../sections/AgentSection';
 import QuestionsSection from '../sections/QuestionsSection';
-import UserSection from '../sections/UserSection';
 import TranscriptionsSection from '../sections/TranscriptionsSection';
 import ContentPad from '../sections/ContentPad';
 import useClassStore from '../../store/class.store';
@@ -10,9 +9,8 @@ import { useAgent } from '../../hooks/useAgent';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { LogOut, Mic, MicOff } from 'lucide-react';
-import { logger } from '@/utils/logger';
 import { agoraService } from '@/services/agora.service';
-
+import StartClass from '../pages/StartClass';
 interface TranscriptionMessage {
   text: string;
   type: 'agent' | 'user' | 'question' | 'answer';
@@ -25,24 +23,19 @@ export interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const {
-    channelInfo,
     isJoined,
     isMuted,
     isAgentStarted,
-    remoteUsers,
-    agentDetails,
     loading,
     error,
-    selectedLanguage,
-    setSelectedLanguage,
     currentQuestion,
     transcriptions,
     contentImage,
     stopAgent,
     leaveChannel,
-    toggleMute,
+    startAgent,
     handleAnswerSubmit
-  } = useAgent('byjuai');
+  } = useAgent();
 
   const {
     setIsAgentStarted,
@@ -66,15 +59,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
   }, [transcriptions, addTranscription]);
 
-  const handleStartAgent = () => {
-    setIsAgentStarted(true);
-    addTranscription('Agent started the session');
-  };
-
-  const handleStopAgent = () => {
-    setIsAgentStarted(false);
-    addTranscription('Agent ended the session');
-  };
 
   const handleToggleMute = () => {
     setIsMuted(!isMuted);
@@ -83,12 +67,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleLeaveChannel = async () => {
     try {
-      await stopAgent();
-      await leaveChannel();
+      leaveChannel();
+      stopAgent();
       setIsJoined(false);
       setIsAgentStarted(false);
       addTranscription('User left the classroom');
-      navigate('/');
     } catch (error) {
       console.error('Failed to leave classroom:', error);
       addTranscription('Error leaving classroom');
@@ -108,6 +91,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
+  if(!isJoined) {
+    return <StartClass startAgent={startAgent} />
+  }
+
   return (
     <div className="min-h-screen w-full bg-background h-[100vh]">
       <Header />
@@ -116,10 +103,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="col-span-1">
               <AgentSection
-                agentDetails={agentDetails}
                 isAgentStarted={isAgentStarted}
-                onStartAgent={handleStartAgent}
-                onStopAgent={handleStopAgent}
               />
             </div>
             <div className="col-span-1">
