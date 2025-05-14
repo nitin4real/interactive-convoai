@@ -122,7 +122,7 @@ export const useAgent = () => {
       if (error?.response?.status === 440) {
         handleTimeout();
       } else {
-        setError('Failed to initialize agent');
+        setError(error?.response?.data?.error || 'Failed to initialize agent');
       }
       setLoading(false);
     }
