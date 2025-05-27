@@ -93,6 +93,15 @@ export const useAgent = () => {
             logger.error('useAgent', `Socket error ${error}`);
           });
 
+          socketRef.current.on('timeout', () => {
+            logger.info('useAgent', 'Session expired, stopping heartbeat');
+            alert('Platform Usage time is over, please contact your administrator');
+            leaveChannel();
+            stopAgent();
+            setIsJoined(false);
+            setIsAgentStarted(false);
+          });
+
           // Listen for new questions
           socketRef.current.on('new_question', handleNewQuestion);
           socketRef.current.on('content', (data) => {
