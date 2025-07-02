@@ -1,3 +1,4 @@
+import { IMessage } from '../types/agent'
 
 export type TDataChunk = {
     message_id: string
@@ -58,6 +59,7 @@ export enum ETranscriptionObjectType {
     USER_TRANSCRIPTION = 'user.transcription',
     AGENT_TRANSCRIPTION = 'assistant.transcription',
     MSG_INTERRUPTED = 'message.interrupt',
+    MES_USER = 'message.user',
 }
 
 /**
@@ -110,6 +112,13 @@ export interface IMessageInterrupt {
     start_ms: number
     send_ts: number
 }
+export interface IMessageUser {
+    object: ETranscriptionObjectType.MES_USER // "message.user"
+    message_id: string
+    data_type: 'message'
+    turn_id: number
+    content: string
+}
 
 
 const DEFAULT_MESSAGE_CACHE_TIMEOUT = 1000 * 60 * 5 // 5 minutes
@@ -119,15 +128,51 @@ export class MessageEngine {
     private _messageCache: Record<string, TDataChunk[]> = {}
     private _messageCacheTimeout: number = DEFAULT_MESSAGE_CACHE_TIMEOUT
 
-    public handleStreamMessage(stream: Uint8Array): IUserTranscription | IAgentTranscription | IMessageInterrupt | null {
+    public handleStreamMessage(stream: Uint8Array): IMessage | undefined {
         const chunk = this.streamMessage2Chunk(stream)
-        let result: IUserTranscription | IAgentTranscription | IMessageInterrupt | null = null
+        let messageData: IMessage | undefined = undefined
         this.handleChunk<
-            IUserTranscription | IAgentTranscription | IMessageInterrupt
+            IUserTranscription | IAgentTranscription | IMessageUser
         >(chunk, (message) => {
-            result = message
+            if (message.object === ETranscriptionObjectType.USER_TRANSCRIPTION) {
+                messageData = {
+                    type: ETranscriptionObjectType.USER_TRANSCRIPTION,
+                    text: message?.text,
+                    turn_id: message?.turn_id,
+                }
+            } else if (message.object === ETranscriptionObjectType.AGENT_TRANSCRIPTION) {
+                messageData = {
+                    type: ETranscriptionObjectType.AGENT_TRANSCRIPTION,
+                    text: message?.text,
+                    turn_id: message?.turn_id,
+                }
+            } else if (message.object === ETranscriptionObjectType.MES_USER) {
+                const jsonMessage = JSON.parse(message.content)
+                if (jsonMessage.type === 'question') {
+                    messageData = {
+                        type: 'question',
+                        text: jsonMessage.questionDescription,
+                        questionData: {
+                            type: 'question',
+                            questionDescription: jsonMessage.questionDescription,
+                            options: jsonMessage.options,
+                        }
+                    }
+                } else if (jsonMessage.type === 'concept_image') {
+                    messageData = {
+                        type: 'concept_image',
+                        text: jsonMessage.conceptName,
+                        imageData: {
+                            type: 'concept_image',
+                            conceptName: jsonMessage.conceptName,
+                            imageUrl: jsonMessage.imageUrl,
+                            imageDescription: jsonMessage.imageDescription,
+                        }
+                    }
+                }
+            }
         })
-        return result
+        return messageData
     }
 
     public streamMessage2Chunk(stream: Uint8Array) {
@@ -141,7 +186,8 @@ export class MessageEngine {
         | TDataChunkMessageV1
         | IUserTranscription
         | IAgentTranscription
-        | IMessageInterrupt,
+        | IMessageInterrupt
+        | IMessageUser,
     >(chunk: string, callback?: (message: T) => void): void {
         try {
             // split chunk by '|'
@@ -196,8 +242,18 @@ export class MessageEngine {
                 const message = this._messageCache[input.message_id]
                     .map((chunk) => chunk.content)
                     .join('')
+
+                // decode message
+                // console.log('[message]', atob(message))
+
                 const decodedMessage = JSON.parse(atob(message))
+
+                // console.log('[decodedMessage]', decodedMessage)
+
+                // callback
                 callback?.(decodedMessage)
+
+                // delete cache
                 delete this._messageCache[input.message_id]
             }
 

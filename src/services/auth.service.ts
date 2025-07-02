@@ -44,7 +44,11 @@ export const authService = {
 
   getBrandDetails(): BrandDetails | null {
     const brandDetails = localStorage.getItem('brandDetails');
-    return brandDetails ? JSON.parse(brandDetails) : null;
+    if (!brandDetails) {
+      return null;
+    }
+    // return JSON.parse(brandDetails);
+    return null
   }
 };
 

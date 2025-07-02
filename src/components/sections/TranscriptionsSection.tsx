@@ -1,13 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-
-interface TranscriptionMessage {
-  text: string;
-  type: 'agent' | 'user' | 'question' | 'answer';
-}
+import { IMessage } from '@/types/agent';
 
 interface TranscriptionsSectionProps {
-  transcriptions: TranscriptionMessage[];
+  transcriptions: IMessage[];
 }
 
 const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcriptions }) => {
@@ -24,16 +20,16 @@ const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcrip
     scrollToBottom();
   }, [transcriptions]);
 
-  const getMessageStyle = (type: TranscriptionMessage['type']) => {
+  const getMessageStyle = (type: IMessage['type']) => {
     switch (type) {
-      case 'agent':
+      case 'assistant.transcription':
         return 'bg-purple-100 text-purple-900 ml-0 mr-auto';
-      case 'user':
+      case 'user.transcription':
         return 'bg-blue-100 text-blue-900 ml-auto mr-0';
       case 'question':
         return 'bg-gray-100 text-gray-900 mx-auto';
-      case 'answer':
-        return 'bg-green-100 text-green-900 mx-auto';
+      // case 'answer':
+      //   return 'bg-green-100 text-green-900 mx-auto';
       default:
         return '';
     }
@@ -58,7 +54,7 @@ const TranscriptionsSection: React.FC<TranscriptionsSectionProps> = ({ transcrip
                 key={index}
                 className={`max-w-[80%] rounded-lg p-3 ${getMessageStyle(message.type)}`}
               >
-                {message.text.replace(/Baiju/gi, 'Byju')}
+                {message.text}
               </div>
             ))}
           </div>

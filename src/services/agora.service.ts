@@ -8,6 +8,7 @@ import AgoraRTC, {
 } from 'agora-rtc-sdk-ng';
 import { logger } from '@/utils/logger';
 import { ETranscriptionObjectType, IAgentTranscription, IUserTranscription, messageEngine } from './agora.message.service';
+import { IMessage } from '@/types/agent';
 // import { messageEngine } from './agora.message.service';
 export interface JoinChannelConfig {
   appId: string;
@@ -18,11 +19,21 @@ export interface JoinChannelConfig {
 }
 
 export interface StartAgentResponse {
-  rtcToken: string;
-  channelName: string;
-  appId: string;
-  uid: number;
-  rtmToken: string;
+  success: boolean;
+  message: string;
+  data: {
+    rtcToken: string;
+    channelName: string;
+    appId: string;
+    uid: number;
+    rtmToken: string;
+    agent_uid: number;
+  }
+}
+
+export interface StopAgentResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface RemoteUser {
@@ -37,6 +48,7 @@ export interface AgoraServiceCallbacks {
   onUserUnpublished?: (user: RemoteUser) => void;
   onUserTranscription?: (msg: IUserTranscription) => void;
   onAgentTranscription?: (msg: IAgentTranscription) => void;
+  onMessage?: (msg: IMessage) => void;
 }
 
 class AgoraService {
@@ -85,14 +97,10 @@ class AgoraService {
 
     this.client.on('stream-message', (_: UID, payload: Uint8Array) => {
       const msg = messageEngine.handleStreamMessage(payload)
-      if (msg === null) {
+      if (!msg) {
         return
       }
-      if (msg.object === ETranscriptionObjectType.USER_TRANSCRIPTION) {
-        this.callbacks.onUserTranscription?.(msg);
-      } else if (msg.object === ETranscriptionObjectType.AGENT_TRANSCRIPTION) {
-        this.callbacks.onAgentTranscription?.(msg);
-      }
+      this.callbacks.onMessage?.(msg)
     })
   }
 
@@ -102,6 +110,16 @@ class AgoraService {
       return response.data;
     } catch (error) {
       logger.error('Agora Service', 'Error starting agent');
+      throw error;
+    }
+  }
+  
+  async stopAgent(): Promise<StopAgentResponse> {
+    try {
+      const response = await axios.post<StopAgentResponse>(`${API_CONFIG.ENDPOINTS.AGENT.STOP}`);
+      return response.data;
+    } catch (error) {
+      logger.error('Agora Service', 'Error stopping agent');
       throw error;
     }
   }

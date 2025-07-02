@@ -49,8 +49,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Sync transcriptions with store
   useEffect(() => {
     if (transcriptions.length > 0) {
-      const lastTranscription = transcriptions[transcriptions.length - 1];
-      addTranscription(lastTranscription.text, lastTranscription.type);
+      // const lastTranscription = transcriptions[transcriptions.length - 1];
+      // addTranscription(lastTranscription.text, lastTranscription.type);
     }
   }, [transcriptions, addTranscription]);
 

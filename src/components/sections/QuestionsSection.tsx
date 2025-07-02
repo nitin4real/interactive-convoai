@@ -48,27 +48,26 @@ const QuestionsSection: React.FC<QuestionsSectionProps> = ({
           <p className="text-lg text-gray-800 font-medium">{currentQuestion.question}</p>
           <div className="space-y-3">
             {currentQuestion.options.map((option, index) => (
-              <Button
+              <div
                 key={index}
-                variant={selectedAnswer === option ? "default" : "outline"}
                 className={`w-full justify-start text-left h-auto py-3 px-4 rounded-lg transition-all duration-200
                   ${selectedAnswer === option 
                     ? '!bg-[#2B579A] !text-white !border-[#2B579A] hover:!bg-[#1E3F7A]' 
                     : '!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 hover:!border-[#2B579A]'}`}
-                onClick={() => setSelectedAnswer(option)}
+                // onClick={() => setSelectedAnswer(option)}
               >
                 {option}
-              </Button>
+              </div>
             ))}
           </div>
-          <Button
+          {/* <Button
             variant="default"
             className="w-full !bg-[#2B579A] !text-white hover:!bg-[#1E3F7A] h-12 rounded-lg font-medium"
             disabled={!selectedAnswer}
             onClick={() => selectedAnswer && onAnswerSubmit(selectedAnswer)}
           >
             Submit Answer
-          </Button>
+          </Button> */}
         </div>
       </CardContent>
     </Card>

@@ -1,30 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-
-import { Socket, io } from 'socket.io-client';
-import { API_CONFIG } from '../config/api.config';
-import axios from '../config/axios.config';
 import { agoraService, RemoteUser, StartAgentResponse } from '../services/agora.service';
 
 import { logger } from '@/utils/logger';
+import { IMessage } from '@/types/agent';
 interface Question {
   id: string;
   question: string;
   options: string[];
 }
 
-interface Transcript {
-  isAgent: boolean;
-  transcript: string;
-}
-
-interface TranscriptionMessage {
-  text: string;
-  type: 'agent' | 'user' | 'question' | 'answer';
-}
-
 export const useAgent = () => {
   const [agentState, setAgentState] = useState<StartAgentResponse | null>(null);
-  const socketRef = useRef<Socket | null>(null);
   const [isJoined, setIsJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isAgentStarted, setIsAgentStarted] = useState(false);
@@ -33,30 +19,15 @@ export const useAgent = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [transcriptions, setTranscriptions] = useState<TranscriptionMessage[]>([]);
+  const [transcriptions, setTranscriptions] = useState<IMessage[]>([]);
   const [contentImage, setContentImage] = useState<string | undefined>();
   const isInitializedRef = useRef(false);
 
   const handleNewQuestion = useCallback((data: Question) => {
     logger.info('useAgent', `Received new question: ${data.question}`);
     setCurrentQuestion(data);
-    // Add to transcriptions for history
-    setTranscriptions(prev => [...prev, { text: data.question, type: 'question' }]);
   }, []);
 
-  const handleTranscript = useCallback((data: Transcript) => {
-    // handle overlapping transcriptions
-    setTranscriptions(prev => {
-      const lastTranscript = prev[prev.length - 1];
-      if (lastTranscript && lastTranscript.type === (data.isAgent ? 'agent' : 'user')) {
-        prev = prev.slice(0, -1);
-      }
-      return [...prev, {
-        text: data.transcript,
-        type: data.isAgent ? 'agent' : 'user'
-      }];
-    });
-  }, [transcriptions]);
 
 
   const startAgent = useCallback(async () => {
@@ -68,56 +39,14 @@ export const useAgent = () => {
         setAgentState(startAgentResponse);
         setIsAgentStarted(true);
 
-        // Initialize socket connection
-        if (!socketRef.current) {
-          socketRef.current = io(API_CONFIG.BASE_URL, {
-            auth: {
-              token: localStorage.getItem('token'),
-              channelName: startAgentResponse.channelName
-            },
-            transports: ['websocket']
-          });
-
-          // Socket event listeners
-          socketRef.current.on('connect', () => {
-            logger.info('useAgent', 'Socket connected successfully');
-          });
-          socketRef.current.on('message', (data) => {
-            logger.info('useAgent', `Socket message ${data}`);
-          });
-          socketRef.current.on('disconnect', () => {
-            logger.info('useAgent', 'Socket disconnected');
-          });
-
-          socketRef.current.on('error', (error) => {
-            logger.error('useAgent', `Socket error ${error}`);
-          });
-
-          socketRef.current.on('timeout', () => {
-            logger.info('useAgent', 'Session expired, stopping heartbeat');
-            alert('Platform Usage time is over, please contact your administrator');
-            leaveChannel();
-            stopAgent();
-            setIsJoined(false);
-            setIsAgentStarted(false);
-          });
-
-          // Listen for new questions
-          socketRef.current.on('new_question', handleNewQuestion);
-          socketRef.current.on('content', (data) => {
-            logger.info('useAgent', `Content received ${JSON.stringify(data)}`);
-            setContentImage(data.imageUrl);
-          });
-        }
-
         // join the channel
         logger.info('useAgent', `Joining channel ${JSON.stringify(startAgentResponse)}`);
         await agoraService.joinChannel({
-          appId: startAgentResponse.appId,
-          channelName: startAgentResponse.channelName,
-          token: startAgentResponse.rtcToken,
-          uid: startAgentResponse.uid,
-          rtmToken: startAgentResponse.rtmToken
+          appId: startAgentResponse.data.appId,
+          channelName: startAgentResponse.data.channelName,
+          token: startAgentResponse.data.rtcToken,
+          uid: startAgentResponse.data.uid,
+          rtmToken: startAgentResponse.data.rtmToken
         });
         setIsJoined(true);
         setLoading(false);
@@ -135,17 +64,11 @@ export const useAgent = () => {
       }
       setLoading(false);
     }
-  }, [handleNewQuestion, handleTranscript]);
+  }, [handleNewQuestion]);
 
   // Clean up socket connection on unmount
   useEffect(() => {
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off('new_question');
-        socketRef.current.off('transcript');
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
       isInitializedRef.current = false;
       leaveChannel();
     };
@@ -162,32 +85,51 @@ export const useAgent = () => {
         console.log('User left:', uid);
         setRemoteUsers(prev => prev.filter(user => user.uid !== uid));
       },
-      onUserTranscription: (msg) => {
-        handleTranscript({ transcript: msg.text, isAgent: false });
-      },
-      onAgentTranscription: (msg) => {
-        handleTranscript({ transcript: msg.text, isAgent: true });
+      onMessage: (message) => {
+        if(!message) return
+        if (message.type === 'user.transcription' || message.type === 'assistant.transcription') {
+          setTranscriptions(prev => {
+            if (prev.length > 0) {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.turn_id === message.turn_id && lastMessage.type === message.type) {
+                // compare the last message with the new message
+                if (lastMessage.text === message.text) {
+                  return prev;
+                }
+                return [...prev.slice(0, -1), message];
+              } else {
+                // check if the new message is the same as the last message
+                if (lastMessage.text === message.text) {
+                  return prev;
+                }
+                return [...prev, message];
+              }
+            }
+            return [...prev, message];
+          });
+        } else if (message.type === 'question' && message.questionData) {
+          setCurrentQuestion({
+            id: 'message.questionData.id',
+            question: message.questionData.questionDescription,
+            options: message.questionData.options
+          });
+        } else if (message.type === 'concept_image' && message.imageData) {
+          setContentImage(message.imageData.imageUrl);
+        }
       }
+
     });
   }, []);
 
   const handleAnswerSubmit = (answer: string) => {
-    if (!socketRef.current || !currentQuestion) return;
 
-    socketRef.current.emit('answer_submitted', {
-      answer,
-      question: currentQuestion.question
-    });
   };
 
   const stopAgent = async () => {
     if (!agentState) return;
 
     try {
-      await axios.post(
-        `${API_CONFIG.ENDPOINTS.AGENT.STOP}`,
-        { channelName: agentState.channelName }
-      );
+      await agoraService.stopAgent();
       setIsAgentStarted(false);
       setAgentState(null);
     } catch (error) {
@@ -202,11 +144,6 @@ export const useAgent = () => {
     setIsAgentStarted(false);
     setRemoteUsers([]);
     setAgentState(null);
-
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
   };
 
   const toggleMute = () => {
