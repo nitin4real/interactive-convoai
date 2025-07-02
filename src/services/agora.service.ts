@@ -7,7 +7,7 @@ import AgoraRTC, {
   UID
 } from 'agora-rtc-sdk-ng';
 import { logger } from '@/utils/logger';
-import { ETranscriptionObjectType, IAgentTranscription, IUserTranscription, messageEngine } from './agora.message.service';
+import { IAgentTranscription, IUserTranscription, messageEngine } from './agora.message.service';
 import { IMessage } from '@/types/agent';
 // import { messageEngine } from './agora.message.service';
 export interface JoinChannelConfig {

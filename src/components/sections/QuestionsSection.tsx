@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
 import { MessageSquare } from 'lucide-react';
 
 interface Question {
@@ -16,9 +15,8 @@ interface QuestionsSectionProps {
 
 const QuestionsSection: React.FC<QuestionsSectionProps> = ({
   currentQuestion,
-  onAnswerSubmit
 }) => {
-  const [selectedAnswer, setSelectedAnswer] = React.useState<string | null>(null);
+  // const [selectedAnswer, setSelectedAnswer] = React.useState<string | null>(null);
 
   if (!currentQuestion) {
     return (
@@ -51,7 +49,7 @@ const QuestionsSection: React.FC<QuestionsSectionProps> = ({
               <div
                 key={index}
                 className={`w-full justify-start text-left h-auto py-3 px-4 rounded-lg transition-all duration-200
-                  ${selectedAnswer === option 
+                  ${ false // 'selectedAnswer' === option 
                     ? '!bg-[#2B579A] !text-white !border-[#2B579A] hover:!bg-[#1E3F7A]' 
                     : '!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 hover:!border-[#2B579A]'}`}
                 // onClick={() => setSelectedAnswer(option)}

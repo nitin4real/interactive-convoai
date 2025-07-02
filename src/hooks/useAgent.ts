@@ -122,7 +122,7 @@ export const useAgent = () => {
   }, []);
 
   const handleAnswerSubmit = (answer: string) => {
-
+    console.log('handleAnswerSubmit', answer);
   };
 
   const stopAgent = async () => {
