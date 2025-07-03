@@ -1,7 +1,7 @@
 export const API_CONFIG = {
-  // BASE_URL: 'https://convo.agoraaidemo.in:8000',
+  BASE_URL: 'https://convo.agoraaidemo.in:3006',
   // SOCKET_URL: 'https://convo.agoraaidemo.in:8000',
-  BASE_URL: 'http://localhost:3006/',
+  // BASE_URL: 'http://localhost:3006/',
   // SOCKET_URL: 'http://localhost:8000',
 
   ENDPOINTS: {
