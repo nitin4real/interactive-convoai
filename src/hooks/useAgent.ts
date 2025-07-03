@@ -129,7 +129,7 @@ export const useAgent = () => {
     if (!agentState) return;
 
     try {
-      await agoraService.stopAgent();
+      await agoraService.stopAgent(agentState?.data?.agentResponse?.agent_id);
       setIsAgentStarted(false);
       setAgentState(null);
     } catch (error) {

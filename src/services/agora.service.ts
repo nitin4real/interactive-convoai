@@ -28,6 +28,11 @@ export interface StartAgentResponse {
     uid: number;
     rtmToken: string;
     agent_uid: number;
+    agentResponse: {
+      agent_id: string;
+      create_ts: number;
+      status: string;
+    }
   }
 }
 
@@ -114,9 +119,14 @@ class AgoraService {
     }
   }
   
-  async stopAgent(): Promise<StopAgentResponse> {
+  async stopAgent(agentId: string): Promise<StopAgentResponse> {
     try {
-      const response = await axios.post<StopAgentResponse>(`${API_CONFIG.ENDPOINTS.AGENT.STOP}`);
+      if (!agentId) {
+        throw new Error('Agent ID is required');
+      }
+      const response = await axios.post<StopAgentResponse>(`${API_CONFIG.ENDPOINTS.AGENT.STOP}`, {
+        agentId 
+      });
       return response.data;
     } catch (error) {
       logger.error('Agora Service', 'Error stopping agent');
