@@ -37,7 +37,7 @@ const Login: React.FC = () => {
         <img src={logo} alt="Agora Logo" className="w-40 -mb-4  self-center" />
         <CardHeader className="space-y-3 pb-4 ">
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-[#099DFD] to-[#099DFD] bg-clip-text text-transparent">
-            Welcome to Agora Conversational AI Demo
+          Welcome to Agora ConvoAI Edtech Demo
           </CardTitle>
           <p className="px-8 text-center text-sm text-muted-foreground">
             Sign in to explore real-time AI conversations
