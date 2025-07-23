@@ -141,7 +141,7 @@ export const useAgent = () => {
         `${API_CONFIG.ENDPOINTS.AGENT.HEARTBEAT}/${convoAgentId.current}`,
         {}
       );
-      logger.info('useAgent', 'Heartbeat sent');
+      logger.info('useAgent', `Heartbeat sent ${response.data.secondsRemaining} ${remainingTime}`);
       setRemainingTime(response.data.secondsRemaining);
     } catch (error: any) {
       console.error('Failed to send heartbeat', error);
