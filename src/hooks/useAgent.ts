@@ -42,6 +42,11 @@ export const useAgent = () => {
     try {
       const startAgentResponse = await agoraService.startAgent();
       if (startAgentResponse) {
+        if(startAgentResponse.data.agentResponse.status === 'NO_MINUTES_REMAINING') {
+          setError('No minutes remaining');
+          setLoading(false);
+          return 
+        }
         setAgentState(startAgentResponse);
         setIsAgentStarted(true);
         // join the channel
@@ -146,6 +151,9 @@ export const useAgent = () => {
     } catch (error: any) {
       console.error('Failed to send heartbeat', error);
       // stop services and leave channel
+      alert('No minutes remaining');
+      // stopAgent();
+      stopHeartbeat();
       setAgentState(null);
       setIsAgentStarted(false);
       leaveChannel();
