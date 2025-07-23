@@ -11,6 +11,7 @@ export const API_CONFIG = {
     AGENT: {
       START: '/api/v1/agent/start',
       STOP: '/api/v1/agent/stop',
+      HEARTBEAT: '/api/v1/agent/heartbeat'
     }
   }
 } as const; 

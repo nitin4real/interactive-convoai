@@ -3,6 +3,8 @@ import { agoraService, RemoteUser, StartAgentResponse } from '../services/agora.
 
 import { logger } from '@/utils/logger';
 import { IMessage } from '@/types/agent';
+import axios from 'axios';
+import { API_CONFIG } from '@/config/api.config';
 interface Question {
   id: string;
   question: string;
@@ -22,6 +24,10 @@ export const useAgent = () => {
   const [transcriptions, setTranscriptions] = useState<IMessage[]>([]);
   const [contentImage, setContentImage] = useState<string | undefined>();
   const isInitializedRef = useRef(false);
+  const convoAgentId = useRef<string | null>(null);
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
   const handleNewQuestion = useCallback((data: Question) => {
     logger.info('useAgent', `Received new question: ${data.question}`);
@@ -38,7 +44,6 @@ export const useAgent = () => {
       if (startAgentResponse) {
         setAgentState(startAgentResponse);
         setIsAgentStarted(true);
-
         // join the channel
         logger.info('useAgent', `Joining channel ${JSON.stringify(startAgentResponse)}`);
         await agoraService.joinChannel({
@@ -48,8 +53,11 @@ export const useAgent = () => {
           uid: startAgentResponse.data.uid,
           rtmToken: startAgentResponse.data.rtmToken
         });
+        convoAgentId.current = startAgentResponse.data.agentResponse.agent_id;
         setIsJoined(true);
         setLoading(false);
+        startHeartbeat();
+
         logger.info('useAgent', 'Initialization completed successfully');
       } else {
         setError('Failed to initialize agent');
@@ -125,6 +133,56 @@ export const useAgent = () => {
     console.log('handleAnswerSubmit', answer);
   };
 
+  const sendHeartbeat = async () => {
+    if (!convoAgentId.current) return;
+
+    try {
+      const response = await axios.post<{ status: string; secondsRemaining: number }>(
+        `${API_CONFIG.ENDPOINTS.AGENT.HEARTBEAT}/${convoAgentId.current}`,
+        {}
+      );
+      logger.info('useAgent', 'Heartbeat sent');
+      setRemainingTime(response.data.secondsRemaining);
+    } catch (error: any) {
+      console.error('Failed to send heartbeat', error);
+      // stop services and leave channel
+      setAgentState(null);
+      setIsAgentStarted(false);
+      leaveChannel();
+    }
+  };
+
+  const startHeartbeat = () => {
+    logger.info('useAgent', 'Starting heartbeat');
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+
+    sendHeartbeat();
+    heartbeatIntervalRef.current = setInterval(sendHeartbeat, 5000);
+    logger.info('useAgent', 'Heartbeat started');
+
+    // Update timer every second
+    timerIntervalRef.current = setInterval(() => {
+      setRemainingTime(prev => {
+        if (prev === null || prev <= 0) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const stopHeartbeat = () => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+  };
+
   const stopAgent = async () => {
     if (!agentState) return;
 
@@ -132,6 +190,7 @@ export const useAgent = () => {
       await agoraService.stopAgent(agentState?.data?.agentResponse?.agent_id);
       setIsAgentStarted(false);
       setAgentState(null);
+      stopHeartbeat();
     } catch (error) {
       console.error('Failed to stop agent:', error);
       setError('Failed to stop agent');
