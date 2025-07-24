@@ -151,7 +151,9 @@ export const useAgent = () => {
     } catch (error: any) {
       console.error('Failed to send heartbeat', error);
       // stop services and leave channel
-      alert('No minutes remaining');
+      if(isJoined) {
+        alert('No minutes remaining');
+      }
       // stopAgent();
       stopHeartbeat();
       setAgentState(null);
