@@ -47,8 +47,7 @@ export const authService = {
     if (!brandDetails) {
       return null;
     }
-    // return JSON.parse(brandDetails);
-    return null
+    return JSON.parse(brandDetails);
   }
 };
 

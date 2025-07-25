@@ -18,7 +18,7 @@ const Header: React.FC = () => {
         {/* only show brand logo if brandDetails is available */}
         {brandDetails && brandDetails.brandLogo && (
           <>
-            <img src={brandDetails?.brandLogo} alt="Byju's Logo" className="h-12 w-12 rounded bg-white p-1 shadow" />
+            <img src={brandDetails?.brandLogo} alt="Brand Logo" className="h-12 w-12 rounded bg-white p-1 shadow" />
             <span className="text-2xl font-bold tracking-wide">{brandDetails?.brandName}</span>
           </>
         )}

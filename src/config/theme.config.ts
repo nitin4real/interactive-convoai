@@ -21,7 +21,7 @@ export interface Theme {
 
 export const themes: Theme[] = [
   {
-    name: 'Byju\'s Purple',
+    name: 'Purple',
     colors: {
       primary: '#833388',
       secondary: '#9b4bb7',

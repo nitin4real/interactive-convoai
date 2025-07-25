@@ -1,4 +1,4 @@
-# ByjuClasses - Conversational AI Demo
+# Conversational AI Demo
 
 A modern React-based web application that demonstrates real-time conversational AI capabilities using Agora's voice communication platform. This project showcases an interactive classroom environment where users can engage with AI agents through voice conversations.
 
@@ -67,7 +67,7 @@ src/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd ByjuClasses
+   cd interactive-convoai
    ```
 
 2. **Install dependencies**
